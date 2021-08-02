@@ -11,19 +11,19 @@ use hello_rocket::establish_connection;
 use hello_rocket::models::Person;
 use hello_rocket::schema::person::dsl::person;
 
-#[get("/", format = "json")]
-fn index() -> Json<Person> {
+#[get("/<id>", format = "json")]
+fn find_one(id: i32) -> Json<Person> {
     let connection = establish_connection();
 
-    let me: QueryResult<Person> = person::table().first::<Person>(&connection);
+    let one: QueryResult<Person> = person.find(id).first(&connection);
 
-    println!("{:?}", me);
+    println!("{:?}", one);
 
-    Json(me.ok().unwrap())
+    Json(one.ok().unwrap())
 }
 
-#[get("/all", format = "json")]
-fn all() -> Json<Vec<Person>> {
+#[get("/", format = "json")]
+fn find_all() -> Json<Vec<Person>> {
     let connection = establish_connection();
 
     let all: QueryResult<Vec<Person>> = person::table().get_results(&connection);
@@ -34,5 +34,5 @@ fn all() -> Json<Vec<Person>> {
 }
 
 fn main() {
-    rocket::ignite().mount("/", routes![index, all]).launch();
+    rocket::ignite().mount("/", routes![find_one, find_all]).launch();
 }
