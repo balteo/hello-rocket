@@ -6,20 +6,24 @@ use diesel::prelude::*;
 use diesel::RunQueryDsl;
 use rocket::{get, routes};
 use rocket_contrib::json::Json;
+use rocket::response::status::NotFound;
 
 use hello_rocket::establish_connection;
 use hello_rocket::models::Person;
 use hello_rocket::schema::person::dsl::person;
 
 #[get("/<id>", format = "json")]
-fn find_one(id: i32) -> Json<Person> {
+fn find_one(id: i32) -> Result<Json<Person>, NotFound<String>> {
     let connection = establish_connection();
 
     let one: QueryResult<Person> = person.find(id).first(&connection);
 
     println!("{:?}", one);
 
-    Json(one.ok().unwrap())
+    match one {
+        Ok(one) => Ok(Json(one)),
+        Err(one)=> Err(NotFound(one.to_string()))
+    }
 }
 
 #[get("/", format = "json")]
